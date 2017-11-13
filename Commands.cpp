@@ -21,12 +21,20 @@
         int i(0);
         bool loop=false;
         size_t found=args.find("/");
-        if (found!=0 && found!=2)
+        if (found!=0 && found!=2 && found!=-1)
         {
             cout << "The system cannot find the path specified";
             loop=true;
         }
         else {
+            if (found==-1)
+            {
+                if (args!=".."){
+                    cout << "The system cannot find the path specified";
+                    loop=true;}
+                else
+                    sub=args;
+            }
             if (found == 0) {
                 args = args.substr(1);
                 found = args.find("/");
@@ -34,7 +42,8 @@
                     sub=args;
                 else
                     sub = args.substr(0, found);
-            } else
+            }
+            if (found==2)
                 sub = args.substr(0, found);
         }
         while (!loop) {
@@ -101,6 +110,7 @@
 
                 else // it's ..
                 {
+
                     current=current.*getParent();
                     args=args.substr(2);
                 }

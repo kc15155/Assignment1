@@ -30,6 +30,8 @@
         return size;
     }
 
+    bool File:: isFile() {return true;}
+
     Directory::Directory(string name, Directory *parent):BaseFile(name),parent(parent)
     {
        children=vector <BaseFile*>();
@@ -113,6 +115,8 @@
         return output;
 
     }
+
+    bool Directory:: isFile() {return false;}
 
 
 

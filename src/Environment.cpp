@@ -161,8 +161,9 @@ Environment & Environment :: operator=(const Environment &other)
 {
     if(this != &other){
         clear();
+        fs = other.fs;
         copy(other);
-        fs = *(new FileSystem(other.fs));
+
     }
     return *this;
 }
@@ -172,7 +173,7 @@ Environment & Environment:: operator= ( Environment &&other)
     if(this != &other){
         clear();
         commandsHistory = other.commandsHistory;
-        fs = other.getFileSystem();
+        fs = other.fs;
         other.commandsHistory.clear();
     }
     return *this;

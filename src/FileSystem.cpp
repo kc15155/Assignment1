@@ -26,11 +26,13 @@ FileSystem:: ~FileSystem()
 
 void FileSystem:: clear()
 {
-    delete workingDirectory;
     delete rootDirectory;
+    workingDirectory=nullptr;
+    rootDirectory=nullptr;
 }
 FileSystem::FileSystem(const FileSystem & other): rootDirectory(new Directory (* other.rootDirectory)), workingDirectory()
 {
+    workingDirectory=rootDirectory;
     if (verbose==1 || verbose==3)
     {
         cout <<"FileSystem::FileSystem(const FileSystem & other)" << endl;
@@ -42,18 +44,19 @@ FileSystem::FileSystem(const FileSystem & other): rootDirectory(new Directory (*
         path.push_back(current->getName());
         current=current->getParent();
     }
-    current=other.rootDirectory;
     vector <BaseFile*> :: iterator myIt;
     while (!path.empty())
     {
-        for (myIt = current->getChildren().begin(); myIt != current->getChildren().end(); myIt++) {
-            if ((**myIt).getName().compare(path.back()) == 0) {
-                current = (Directory *)(*myIt);
+        vector <BaseFile*> myChildren=workingDirectory->getChildren();
+        bool found=false;
+        for (myIt = myChildren.begin(); myIt != myChildren.end() && !found; myIt++) {
+            if ((**myIt).getName()==path.back()) {
+                workingDirectory = (Directory *)(*myIt);
                 path.pop_back();
+                found=true;
             }
         }
     }
-    setWorkingDirectory(current);
 }
 
 FileSystem:: FileSystem(FileSystem && other): rootDirectory(&other.getRootDirectory()), workingDirectory(&other.getWorkingDirectory())
@@ -62,6 +65,8 @@ FileSystem:: FileSystem(FileSystem && other): rootDirectory(&other.getRootDirect
     {
         cout <<"FileSystem:: FileSystem(FileSystem && other)" << endl;
     }
+    other.rootDirectory=nullptr;
+    other.workingDirectory=nullptr;
 }
 FileSystem & FileSystem:: operator=(FileSystem && other)
 {

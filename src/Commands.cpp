@@ -450,7 +450,8 @@ void LsCommand:: execute(FileSystem & fs)
                                 current = current->getParent();
                             }
                             if (!rootPath) {
-                                ((Directory *)toCopy)->setParent(location2);
+                                location->removeFile(toCopy);
+                                location2->addFile(toCopy);
                             }
                         }
                     } else {
@@ -574,7 +575,7 @@ void LsCommand:: execute(FileSystem & fs)
                         while(current!=nullptr && legal)
                         {
                             if(current==(*myIt)) {
-                                cout << "Can't remove file or directory" << endl;
+                                cout << "Can't remove directory" << endl;
                                 legal = false;
                             }
                             current=current->getParent();
@@ -591,8 +592,12 @@ void LsCommand:: execute(FileSystem & fs)
                     }
                 }
             }
-            if (!found)
-                cout << "Can't remove directory" << endl;
+            if (!found) {
+                if (name=="" || name=="..")
+                    cout << "Can't remove directory" << endl;
+                else
+                cout << "No such file or directory" << endl;
+            }
         }
     }
 

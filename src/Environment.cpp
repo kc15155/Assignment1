@@ -120,7 +120,7 @@ void Environment:: start()
     }
 
 }
-const FileSystem& Environment:: getFileSystem() const
+ FileSystem& Environment:: getFileSystem()
 {
     return fs;
 }
@@ -134,11 +134,11 @@ const vector<BaseCommand*>& Environment:: getHistory() const
 }
 void Environment:: clear()
 {
-//    vector <BaseCommand*> :: iterator myIt = commandsHistory.begin();
     for (vector <BaseCommand*> :: iterator myIt = commandsHistory.begin(); myIt!=commandsHistory.end() ; myIt++)
     {
         delete (*myIt);
     }
+    commandsHistory.clear();
 }
 
 Environment ::~Environment()
@@ -148,13 +148,8 @@ Environment ::~Environment()
 
 Environment:: Environment(const Environment &other): fs(), commandsHistory()
 {
-    vector<BaseCommand*>::const_iterator myIt;
-    for( myIt= other.commandsHistory.begin();
-        myIt != other.commandsHistory.end(); ++myIt)
-    {
-        commandsHistory.push_back((*myIt));
-    }
-    fs = *(new FileSystem(other.getFileSystem()));
+    copy(other);
+    fs = *(new FileSystem(other.fs));
 }
 Environment:: Environment(Environment &&other): fs(), commandsHistory() {
     commandsHistory = other.commandsHistory;
@@ -166,13 +161,8 @@ Environment & Environment :: operator=(const Environment &other)
 {
     if(this != &other){
         clear();
-        vector<BaseCommand*>::const_iterator myIt;
-        for( myIt= other.commandsHistory.begin();
-             myIt != other.commandsHistory.end(); ++myIt)
-        {
-            commandsHistory.push_back((*myIt));
-        }
-        fs = *(new FileSystem(other.getFileSystem()));
+        copy(other);
+        fs = *(new FileSystem(other.fs));
     }
     return *this;
 }
@@ -186,4 +176,55 @@ Environment & Environment:: operator= ( Environment &&other)
         other.commandsHistory.clear();
     }
     return *this;
+}
+
+void Environment:: copy(const Environment &other)
+{
+    vector <BaseCommand*> :: const_iterator myIt;
+    BaseCommand *copy;
+    for(myIt = other.commandsHistory.begin();
+        myIt != other.commandsHistory.end(); myIt++){
+        string toCopy = (*myIt) -> toString();
+        bool error=false;
+        if(toCopy == "pwd"){
+            copy = new PwdCommand((*myIt) -> getArgs());
+            error=true;}
+        if(toCopy == "cd"){
+            copy = new CdCommand((*myIt) -> getArgs());
+            error=true;}
+        if(toCopy == "ls"){
+            copy = new LsCommand((*myIt) -> getArgs());
+            error=true;}
+        if(toCopy == "mkdir"){
+            copy = new MkdirCommand((*myIt) -> getArgs());
+            error=true;}
+        if(toCopy == "mkfile"){
+            copy = new MkfileCommand((*myIt) -> getArgs());
+            error=true;}
+        if(toCopy == "cp"){
+            copy = new CpCommand((*myIt) -> getArgs());
+            error=true;}
+        if(toCopy == "mv"){
+            copy = new MvCommand((*myIt) -> getArgs());
+            error=true;}
+        if(toCopy == "rename"){
+            copy = new RenameCommand((*myIt) -> getArgs());
+            error=true;}
+        if(toCopy == "rm"){
+            copy = new RmCommand((*myIt) -> getArgs());
+            error=true;}
+        if(toCopy == "history"){
+            copy = new HistoryCommand((*myIt) -> getArgs(), commandsHistory);
+            error=true;}
+        if(toCopy == "verbose"){
+            copy = new VerboseCommand((*myIt) -> getArgs());
+            error=true;}
+        if(toCopy == "exec"){
+            copy = new ExecCommand((*myIt) -> getArgs(), commandsHistory);
+            error=true;}
+        if (!error)
+          copy = new ErrorCommand((*myIt) -> getArgs());
+
+        commandsHistory.push_back(copy);
+    }
 }

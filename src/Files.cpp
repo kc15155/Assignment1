@@ -50,7 +50,7 @@ void Directory:: clear()
     {
         vector<BaseFile*>::iterator it = children.begin();
         while(it != children.end()){
-            if(!(*it) ->isFile()){
+            if(!(*it)->isFile()){
                 ((Directory*)(*it))->parent=nullptr;
             }
             delete (*it);
@@ -63,15 +63,24 @@ void Directory:: clear()
 
 }
 
-Directory::Directory(Directory && other):BaseFile(other),children(other.getChildren()),parent(other.getParent())
+Directory::Directory(Directory && other):BaseFile(other.getName()),children(move(other.children)),parent(other.parent)
 {
 
-    setName(other.getName());
-    other.setParent(nullptr);
     if (verbose==1 || verbose==3)
     {
         cout <<"Directory::Directory(Directory && other)" << endl;
     }
+    vector <BaseFile*> :: iterator myIt;
+    for (myIt=children.begin() ; myIt!=children.end() ; myIt++)
+    {
+        if (!(**myIt).isFile())
+            ((Directory *)(*myIt))->parent=this;
+    }
+    other.parent->removeFile(&other);
+    other.parent->addFile(this);
+    other.parent=nullptr;
+
+
 }
 
 Directory::Directory(const Directory & other):BaseFile(""),children(),parent(other.getParent())
@@ -107,7 +116,7 @@ Directory & Directory:: operator=(const Directory & other)
     else
     {
         clear();
-        setParent(other.getParent());
+        parent=other.parent;
         vector <BaseFile*> :: const_iterator myIt;
         for (myIt=other.children.begin() ; myIt!=other.children.end() ; myIt++) {
             if ((**myIt).isFile()) {
@@ -117,7 +126,7 @@ Directory & Directory:: operator=(const Directory & other)
                 Directory *newDirectory = new Directory((Directory &) **myIt);
                 addFile(newDirectory);
             }
-            setParent(other.getParent());
+            parent=other.parent;
         }
         return *this;
     }
@@ -132,10 +141,18 @@ Directory & Directory:: operator=(Directory && other)
     if (this!=&other)
     {
         clear();
-        setParent(other.getParent());
-        children=other.getChildren();
+        other.parent->removeFile(&other);
+        other.parent->addFile(this);
+        parent=other.parent;
+        children=move(other.children);
+        vector <BaseFile*> :: iterator myIt;
+        for (myIt=children.begin() ; myIt!=children.end() ; myIt++)
+        {
+            if (!(**myIt).isFile())
+                ((Directory *)(*myIt))->parent=this;
+        }
         setName(other.getName());
-        other.setParent(nullptr);
+        other.parent=nullptr;
     }
     return *this;
 }
@@ -157,6 +174,8 @@ void Directory:: setParent(Directory *newParent)
 void Directory:: addFile(BaseFile* file)
 {
     children.push_back(file);
+    if (!file->isFile())
+        ((Directory *)file)->parent=this;
 }
 
 void Directory:: removeFile(string name)

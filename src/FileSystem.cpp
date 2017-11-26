@@ -106,11 +106,17 @@ FileSystem & FileSystem:: operator=(const FileSystem & other)
         }
         current= newRoot;
         vector <BaseFile*> :: iterator myIt;
+        vector <BaseFile*> myChildren=current->getChildren();
         while (!path.empty()) {
-            for (myIt = current->getChildren().begin(); myIt != current->getChildren().end(); myIt++) {
-                if ((**myIt).getName().compare(path.back()) == 0) {
-                    current = (Directory *)(*myIt);
+            if (myChildren.empty())
+                path.pop_back();
+            else
+            {
+            for (myIt = myChildren.begin(); myIt != myChildren.end(); myIt++) {
+                if ((**myIt).getName()==path.back()) {
+                    current = (Directory *) (*myIt);
                     path.pop_back();
+                }
                 }
             }
         }

@@ -149,7 +149,7 @@ Environment ::~Environment()
 Environment:: Environment(const Environment &other): fs(), commandsHistory()
 {
     copy(other);
-    fs = *(new FileSystem(other.fs));
+    fs = other.fs;
 }
 Environment:: Environment(Environment &&other): fs(), commandsHistory() {
     commandsHistory = other.commandsHistory;
